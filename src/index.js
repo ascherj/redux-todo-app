@@ -1,50 +1,25 @@
-import React, { Component } from 'react';
-import { render } from 'react-dom';
-import { createStore, combineReducers } from 'redux';
-import { connect, Provider } from 'react-redux';
-import './style.css';
+import { createStore } from 'redux';
 
-const countReducer = (state = { count: 0}, action) => {
+const counter = (state = 0, action) => {
   switch (action.type) {
-    case 'INC': return { count: state.count + 1 };
-    case 'DEC': return { count: state.count - 1 };
-    default: return state;
+    case 'INCREMENT':
+      return state + 1;
+    case 'DECREMENT':
+      return state - 1;
+    default:
+      return state;
   }
-}
-
-const reducers = combineReducers({
-  counter: countReducer,
-})
-
-const actions = {
-  inc: () => ({ type: 'INC' }),
-  dec: () => ({ type: 'DEC' }),
 };
 
-const store = createStore(reducers);
+const store = createStore(counter);
 
-class App extends Component {
-  render() {
-    console.log(this.props, actions);
-    return (
-      <div>
-        <button onClick={this.props.inc}>Increment</button>
-        <button onClick={this.props.dec}>Decrement</button>
-        <div>Value: {this.props.count}</div>
-      </div>
-    );
-  }
-}
+const render = () => {
+  document.body.innerText = store.getState();
+};
 
-const mapStateToProps = ({ counter }) => {
-  return { count: counter.count };
-}
+store.subscribe(render);
+render();
 
-const AppContainer = connect(mapStateToProps, actions)(App);
-
-render(
-  <Provider store={store}>
-    <AppContainer />
-  </Provider>,
-  document.getElementById('root')
-);
+document.addEventListener('click', () => {
+  store.dispatch({ type: 'INCREMENT' });
+});
