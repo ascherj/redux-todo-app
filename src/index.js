@@ -3,6 +3,29 @@ import ReactDOM from 'react-dom';
 import { createStore, combineReducers } from 'redux';
 import { Provider, connect } from 'react-redux';
 
+let nextTodoId = 0;
+const addTodo = (text) => {
+  return {
+    type: 'ADD_TODO',
+    id: nextTodoId++,
+    text
+  };
+};
+
+const toggleTodo = (id) => {
+  return {
+    type: 'TOGGLE_TODO',
+    id
+  };
+};
+
+const setVisibilityFilter = (filter) => {
+  return {
+    type: 'SET_VISIBILITY_FILTER',
+    filter
+  };
+};
+
 const todo = (state, action) => {
   switch (action.type) {
     case 'ADD_TODO':
@@ -49,44 +72,6 @@ const todoApp = combineReducers({
   visibilityFilter
 });
 
-const Link = ({ active, children, onClick }) => {
-  if (active) {
-    return <span>{children}</span>;
-  }
-
-  return (
-    <a
-      href="#"
-      onClick={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-    >
-      {children}
-    </a>
-  );
-};
-
-const mapStateToLinkProps = (state, ownProps) => {
-  return {
-    active: ownProps.filter === state.visibilityFilter
-  };
-};
-const mapDispatchToLinkProps = (dispatch, ownProps) => {
-  return {
-    onClick: () => {
-      dispatch({
-        type: 'SET_VISIBILITY_FILTER',
-        filter: ownProps.filter
-      });
-    }
-  };
-};
-const FilterLink = connect(
-  mapStateToLinkProps,
-  mapDispatchToLinkProps
-)(Link);
-
 const getVisibleTodos = (todos, filter) => {
   switch (filter) {
     case 'SHOW_ALL':
@@ -110,11 +95,7 @@ let AddTodo = ({ dispatch }) => {
       />
       <button
         onClick={() => {
-          dispatch({
-            type: 'ADD_TODO',
-            text: input.value,
-            id: nextTodoId++
-          });
+          dispatch(addTodo(input.value));
           input.value = '';
         }}
       >
@@ -152,10 +133,7 @@ const mapStateToTodoListProps = (state) => {
 const mapDispatchToTodoListProps = (dispatch) => {
   return {
     onTodoClick: (id) => {
-      dispatch({
-        type: 'TOGGLE_TODO',
-        id
-      });
+      dispatch(toggleTodo(id));
     }
   };
 };
@@ -163,6 +141,41 @@ const VisibleTodoList = connect(
   mapStateToTodoListProps,
   mapDispatchToTodoListProps
 )(TodoList);
+
+const Link = ({ active, children, onClick }) => {
+  if (active) {
+    return <span>{children}</span>;
+  }
+
+  return (
+    <a
+      href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+    >
+      {children}
+    </a>
+  );
+};
+
+const mapStateToLinkProps = (state, ownProps) => {
+  return {
+    active: ownProps.filter === state.visibilityFilter
+  };
+};
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch(setVisibilityFilter(ownProps.filter));
+    }
+  };
+};
+const FilterLink = connect(
+  mapStateToLinkProps,
+  mapDispatchToLinkProps
+)(Link);
 
 const Footer = () => {
   return (
@@ -176,8 +189,6 @@ const Footer = () => {
     </p>
   );
 };
-
-let nextTodoId = 0;
 
 const TodoApp = () => (
   <div>
