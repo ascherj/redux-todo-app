@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { createStore, combineReducers } from 'redux';
 
@@ -48,7 +48,7 @@ const todoApp = combineReducers({
   visibilityFilter
 });
 
-const FilterLink = ({ filter, currentFilter, children }) => {
+const FilterLink = ({ filter, currentFilter, children, onClick }) => {
   if (filter === currentFilter) {
     return <span>{children}</span>;
   }
@@ -58,10 +58,7 @@ const FilterLink = ({ filter, currentFilter, children }) => {
       href="#"
       onClick={(e) => {
         e.preventDefault();
-        store.dispatch({
-          type: 'SET_VISIBILITY_FILTER',
-          filter
-        });
+        onClick(filter);
       }}
     >
       {children}
@@ -78,6 +75,28 @@ const getVisibleTodos = (todos, filter) => {
     case 'SHOW_ACTIVE':
       return todos.filter((t) => !t.completed);
   }
+};
+
+const AddTodo = ({ onAddClick }) => {
+  let input;
+
+  return (
+    <div>
+      <input
+        ref={(node) => {
+          input = node;
+        }}
+      />
+      <button
+        onClick={() => {
+          onAddClick(input.value);
+          input.value = '';
+        }}
+      >
+        Add Todo
+      </button>
+    </div>
+  );
 };
 
 const Todo = ({ onClick, completed, text }) => (
@@ -99,58 +118,69 @@ const TodoList = ({ todos, onTodoClick }) => (
   </ul>
 );
 
-let nextTodoId = 0;
-class TodoApp extends Component {
-  render() {
-    const { todos, visibilityFilter } = this.props;
-    const visibleTodos = getVisibleTodos(todos, visibilityFilter);
+const Footer = ({ visibilityFilter, onFilterClick }) => {
+  return (
+    <p>
+      Show:&nbsp;
+      <FilterLink
+        filter="SHOW_ALL"
+        currentFilter={visibilityFilter}
+        onClick={onFilterClick}
+      >
+        All
+      </FilterLink>
+      &nbsp;
+      <FilterLink
+        filter="SHOW_ACTIVE"
+        currentFilter={visibilityFilter}
+        onClick={onFilterClick}
+      >
+        Active
+      </FilterLink>
+      &nbsp;
+      <FilterLink
+        filter="SHOW_COMPLETED"
+        currentFilter={visibilityFilter}
+        onClick={onFilterClick}
+      >
+        Completed
+      </FilterLink>
+    </p>
+  );
+};
 
-    return (
-      <div>
-        <input
-          ref={(node) => {
-            this.input = node;
-          }}
-        />
-        <button
-          onClick={() => {
-            store.dispatch({
-              type: 'ADD_TODO',
-              text: this.input.value,
-              id: nextTodoId++
-            });
-            this.input.value = '';
-          }}
-        >
-          Add Todo
-        </button>
-        <TodoList
-          todos={visibleTodos}
-          onTodoClick={(id) =>
-            store.dispatch({
-              type: 'TOGGLE_TODO',
-              id
-            })
-          }
-        />
-        <p>
-          Show:&nbsp;
-          <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
-            All
-          </FilterLink>
-          &nbsp;
-          <FilterLink filter="SHOW_ACTIVE" currentFilter={visibilityFilter}>
-            Active
-          </FilterLink>
-          &nbsp;
-          <FilterLink filter="SHOW_COMPLETED" currentFilter={visibilityFilter}>
-            Completed
-          </FilterLink>
-        </p>
-      </div>
-    );
-  }
-}
+let nextTodoId = 0;
+const TodoApp = ({ todos, visibilityFilter }) => (
+  <div>
+    <AddTodo
+      onAddClick={(text) =>
+        store.dispatch({
+          type: 'ADD_TODO',
+          text,
+          id: nextTodoId++
+        })
+      }
+    />
+    <TodoList
+      todos={getVisibleTodos(todos, visibilityFilter)}
+      onTodoClick={(id) =>
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+        })
+      }
+    />
+    <Footer
+      visibilityFilter={visibilityFilter}
+      onFilterClick={(filter) => {
+        store.dispatch({
+          type: 'SET_VISIBILITY_FILTER',
+          filter
+        });
+      }}
+    />
+  </div>
+);
 
 const store = createStore(todoApp);
 
