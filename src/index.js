@@ -1,17 +1,6 @@
-import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-const counter = (state = 0, action) => {
-  switch (action.type) {
-    case 'INCREMENT':
-      return state + 1;
-    case 'DECREMENT':
-      return state - 1;
-    default:
-      return state;
-  }
-};
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -54,45 +43,48 @@ const visibilityFilter = (state = 'SHOW_ALL', action) => {
   }
 };
 
-const combineReducers = (reducers) => {
-  return (state = {}, action) => {
-    return Object.keys(reducers).reduce((nextState, key) => {
-      nextState[key] = reducers[key](state[key], action);
-      return nextState;
-    }, {});
-  };
-};
-
 const todoApp = combineReducers({
   todos,
   visibilityFilter
 });
 
-const Counter = ({ value, onIncrement, onDecrement }) => (
-  <div>
-    <h1>{value}</h1>
-    <button onClick={onIncrement}>+</button>
-    <button onClick={onDecrement}>-</button>
-  </div>
-);
-
 const store = createStore(todoApp);
+
+let nextTodoId = 0;
+class TodoApp extends React.Component {
+  render() {
+    return (
+      <div>
+        <input
+          ref={(node) => {
+            this.input = node;
+          }}
+        />
+        <button
+          onClick={() => {
+            store.dispatch({
+              type: 'ADD_TODO',
+              text: this.input.value,
+              id: nextTodoId++
+            });
+            this.input.value = '';
+          }}
+        >
+          Add Todo
+        </button>
+        <ul>
+          {this.props.todos.map((todo) => (
+            <li key={todo.id}>{todo.text}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+}
 
 const render = () => {
   ReactDOM.render(
-    <Counter
-      value={store.getState()}
-      onIncrement={() =>
-        store.dispatch({
-          type: 'INCREMENT'
-        })
-      }
-      onDecrement={() =>
-        store.dispatch({
-          type: 'DECREMENT'
-        })
-      }
-    />,
+    <TodoApp todos={store.getState().todos} />,
     document.getElementById('root')
   );
 };
