@@ -13,6 +13,32 @@ const counter = (state = 0, action) => {
   }
 };
 
+const todos = (state = [], action) => {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return [
+        ...state,
+        {
+          id: action.id,
+          text: action.text,
+          completed: false
+        }
+      ];
+    case 'TOGGLE_TODO':
+      return state.map((todo) => {
+        if (todo.id !== action.id) {
+          return todo;
+        }
+        return {
+          ...todo,
+          completed: !todo.completed
+        };
+      });
+    default:
+      return state;
+  }
+};
+
 const Counter = ({ value, onIncrement, onDecrement }) => (
   <div>
     <h1>{value}</h1>
