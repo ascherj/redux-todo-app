@@ -11,16 +11,13 @@
     "no-console": 1,
     "react/prop-types": 0
   },
-  "plugins": [
-    "react",
-    "import",
-    "jsx-a11y"
-  ],
+  "plugins": ["react", "import", "jsx-a11y"],
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
     "ecmaFeatures": {
-      "jsx": true
+      "jsx": true,
+      "experimentalObjectRestSpread": true
     }
   },
   "env": {
