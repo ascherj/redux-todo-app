@@ -1,8 +1,11 @@
 import { createStore, combineReducers } from 'redux';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import { Provider, connect } from 'react-redux';
+
+let nextTodoId = 0;
+
+// REDUCERS
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -50,6 +53,8 @@ const todoApp = combineReducers({
   visibilityFilter
 });
 
+// ACTION CREATORS
+
 const addTodo = (text) => {
   return {
     type: 'ADD_TODO',
@@ -71,6 +76,19 @@ const toggleTodo = (id) => {
     id
   };
 };
+
+const getVisibleTodos = (todos, filter) => {
+  switch (filter) {
+    case 'SHOW_ALL':
+      return todos;
+    case 'SHOW_COMPLETED':
+      return todos.filter((t) => t.completed);
+    case 'SHOW_ACTIVE':
+      return todos.filter((t) => !t.completed);
+  }
+};
+
+// COMPONENTS
 
 let AddTodo = ({ dispatch }) => {
   let input;
@@ -112,6 +130,23 @@ const TodoList = ({ todos, onTodoClick }) => (
     ))}
   </ul>
 );
+
+const mapStateToTodoListProps = (state) => {
+  return {
+    todos: getVisibleTodos(state.todos, state.visibilityFilter)
+  };
+};
+const mapDispatchToTodoListProps = (dispatch) => {
+  return {
+    onTodoClick: (id) => {
+      dispatch(toggleTodo(id));
+    }
+  };
+};
+const VisibleTodoList = connect(
+  mapStateToTodoListProps,
+  mapDispatchToTodoListProps
+)(TodoList);
 
 const Link = ({ active, children, onClick }) => {
   if (active) {
@@ -156,35 +191,6 @@ const Footer = () => (
   </p>
 );
 
-const mapStateToTodoListProps = (state) => {
-  return {
-    todos: getVisibleTodos(state.todos, state.visibilityFilter)
-  };
-};
-const mapDispatchToTodoListProps = (dispatch) => {
-  return {
-    onTodoClick: (id) => {
-      dispatch(toggleTodo(id));
-    }
-  };
-};
-const VisibleTodoList = connect(
-  mapStateToTodoListProps,
-  mapDispatchToTodoListProps
-)(TodoList);
-
-const getVisibleTodos = (todos, filter) => {
-  switch (filter) {
-    case 'SHOW_ALL':
-      return todos;
-    case 'SHOW_COMPLETED':
-      return todos.filter((t) => t.completed);
-    case 'SHOW_ACTIVE':
-      return todos.filter((t) => !t.completed);
-  }
-};
-
-let nextTodoId = 0;
 const TodoApp = () => (
   <div>
     <AddTodo />
